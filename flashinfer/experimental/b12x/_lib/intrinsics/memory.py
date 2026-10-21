@@ -178,6 +178,24 @@ def ld_global_nc_u32(base_ptr: Int64, *, loc=None, ip=None) -> Uint32:
 
 
 @dsl_user_op
+def ld_global_nc_u16(base_ptr: Int64, *, loc=None, ip=None) -> Uint32:
+    """Load 16 bits from global memory via .nc, widened to u32."""
+    return Uint32(
+        llvm.inline_asm(
+            T.i32(),
+            [Int64(base_ptr).ir_value(loc=loc, ip=ip)],
+            "{ .reg .u16 t; ld.global.nc.u16 t, [$1]; cvt.u32.u16 $0, t; }",
+            "=r,l",
+            has_side_effects=False,
+            is_align_stack=False,
+            asm_dialect=llvm.AsmDialect.AD_ATT,
+            loc=loc,
+            ip=ip,
+        )
+    )
+
+
+@dsl_user_op
 def ld_global_nc_f32(base_ptr: Int64, *, loc=None, ip=None) -> Float32:
     """Load an fp32 from global memory via non-coherent cache (.nc)."""
     return Float32(
